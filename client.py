@@ -1,28 +1,28 @@
 import socket 
 
 def main():
-    ipDestino = "localhost"
-    portaDestino = 8082
+    ip_destino = "localhost"
+    porta_destino = 8082
 
     while input("Deseja enviar uma mensagem? (S/N): ") == "S":
         print("---------------------------")
-        conexao = criarConexao(ipDestino, portaDestino) # Sempre precisa fazer isto.
+        conexao = criarConexao(ip_destino, porta_destino) # Sempre precisa fazer isto.
         print("---------------------------")
         try:
             mensagem = input("Digite a mensagem que deseja enviar: ")
             conexao.sendall(mensagem.encode('utf-8'))
             
-            msgRecebida = ""
-            qtdRecebida = 0 
+            msg_recebida = ""
+            qtd_recebida = 0 
             msgEsperada = len(mensagem) 
-            while qtdRecebida < msgEsperada: 
+            while qtd_recebida < msgEsperada: 
                 pacote = conexao.recv(16) # Recebe 16 bytes de pacote
-                qtdRecebida += len(pacote)
-                msgRecebida += pacote.decode('utf-8') # Decodifica para verificacao
+                qtd_recebida += len(pacote)
+                msg_recebida += pacote.decode('utf-8') # Decodifica para verificacao
                 if len(pacote) == 0:
                     break
           
-            if msgRecebida == mensagem: # Apenas para feedback do usuario
+            if msg_recebida == mensagem: # Apenas para feedback do usuario
                 print("Mensagem recebida.")
             else:
                 print("Mensagem nao recebida. Fechando conexao.")

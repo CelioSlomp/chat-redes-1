@@ -1,32 +1,48 @@
-# Codigo copiado para ser usado como exemplo
+import socket 
 
-import socket
-def client(host = 'localhost', port=8082): 
-    # Create a TCP/IP socket 
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-    # Connect the socket to the server 
-    server_address = (host, port) 
-    print ("Connecting to %s port %s" % server_address) 
-    sock.connect(server_address) 
-    # Send data 
-    try: 
-        # Send data 
-        message = "Test message. This will be echoed" 
-        print ("Sending %s" % message) 
-        sock.sendall(message.encode('utf-8')) 
-        # Look for the response 
-        amount_received = 0 
-        amount_expected = len(message) 
-        while amount_received < amount_expected: 
-            data = sock.recv(16) 
-            amount_received += len(data) 
-            print ("Received: %s" % data) 
-    except socket.error as e: 
-        print ("Socket error: %s" %str(e)) 
-    except Exception as e: 
-        print ("Other exception: %s" %str(e)) 
-    finally: 
-        print ("Closing connection to the server") 
-        sock.close() 
+def main():
+    ip_destino = "localhost"
+    porta_destino = 8082
 
-client()
+    while input("Deseja enviar uma mensagem? (S/N): ") == "S":
+        print("---------------------------")
+        conexao = criarConexao(ip_destino, porta_destino) # Sempre precisa fazer isto.
+        print("---------------------------")
+        try:
+            mensagem = input("Digite a mensagem que deseja enviar: ")
+            conexao.sendall(mensagem.encode('utf-8'))
+            
+            msg_recebida = ""
+            qtd_recebida = 0 
+            msgEsperada = len(mensagem) 
+            while qtd_recebida < msgEsperada: 
+                pacote = conexao.recv(16) # Recebe 16 bytes de pacote
+                qtd_recebida += len(pacote)
+                msg_recebida += pacote.decode('utf-8') # Decodifica para verificacao
+                if len(pacote) == 0:
+                    break
+          
+            if msg_recebida == mensagem: # Apenas para feedback do usuario
+                print("Mensagem recebida.")
+            else:
+                print("Mensagem nao recebida. Fechando conexao.")
+
+        except socket.error as e: 
+            print ("Erro no socket", e) 
+        except Exception as e: 
+            print ("Outro erro", e)
+        
+        print("---------------------------")
+    else:
+        print("Fechando conexao.")
+        conexao.close()
+
+def criarConexao(host, porta):
+    conexao = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    print(f"Conectando ao IP {host} com porta {porta}")
+    conexao.connect((host, porta)) 
+
+    return conexao
+
+if __name__ == "__main__":
+    main()
