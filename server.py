@@ -14,10 +14,11 @@ def server():
         s.bind((host, port))
         return s, host, port
 
-    def handle_client(client):
+    def handle_client(client: socket.socket):
         while True:
             try:
-                msg = client.recv(2048)
+                msg = client.recv(data_payload)
+                # client.send()
             except:
                 remove_client(client)
                 break

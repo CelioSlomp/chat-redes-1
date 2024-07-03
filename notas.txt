@@ -1,0 +1,34 @@
+CLIENTE:
+    se conecta ao servidor
+    
+    servidor vai informar a lista de clientes e alguns comandos.
+
+    ...
+
+    1) se este cliente escolher outro cliente da lista para conversar, espera o servidor 
+       contatar o outro e saber se o outro aceita a conexão.
+
+    2) se o servidor enviar mensagem informando que algm quer se conectar, deve-se responder Y ou N
+        Y) o servidor informa ao outro cliente que a conexão acontecerá e quem 
+           aceitou (que no caso é este), faz a conexão direta
+        N) o servidor informa ao outro cliente que a conexão NÃO acontecerá. depois disso, servidor informa
+           a lista de comandos novamente
+
+    quando acontecer conexão entre 'este' cliente e 'outro' cliente (VER teste2.py):
+        inicia a thread RECEBENDO em 'este' e em 'outro':
+            fica ouvindo mensagens
+            sempre que houver uma mensagem nova, printa ela na forma "'outro' >> 'mensagem'"
+        inicia a thread ENVIANDO em 'este' e em 'outro':
+            uma mensagem no começo "now you can send messages to 'outro'."
+            input vazio esperando entradas -> toda vez que houver entrada, ela é enviada ao 'outro'
+
+SERVIDOR:
+    ao se conectar com um cliente: 
+        a) abre uma thread específica pra tratar aquele cliente
+        b) armazena o endereço do cliente num dicionário
+    
+    quando um cliente se conecta pela primeira vez, envia a mensagem:
+        "You are connected to the server! Commands:"
+        "l - see the client list"
+        "c client-number - ask to connect to client-number"
+        "e - exit. closes connection"
