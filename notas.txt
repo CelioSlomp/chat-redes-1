@@ -30,5 +30,4 @@ SERVIDOR:
     quando um cliente se conecta pela primeira vez, envia a mensagem:
         "You are connected to the server! Commands:"
         "l - see the client list"
-        "c client-number - ask to connect to client-number"
         "e - exit. closes connection"

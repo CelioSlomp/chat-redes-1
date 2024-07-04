@@ -1,5 +1,10 @@
 import socket 
 
+server_command_list = \
+    "Commands:\n" + \
+    "l - see the client list\n" + \
+    "e - exit. closes connection\n"
+
 def main():
     ip_destino = "localhost"
     porta_destino = 8082
