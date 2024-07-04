@@ -14,37 +14,64 @@ def server():
         return s, host, port
 
     def handle_client(client: socket.socket):
-        client.sendall("You are connected to the server".encode("utf-8")) # Confirma que há conexão com o cliente
+        try:
+            client.sendall("You are connected to the server".encode("utf-8")) # Confirma que há conexão com o cliente
 
-        # Manda a lista de clientes disponíveis
-        def send_client_list(client: socket.socket):
-            s = ""
-            for key, value in clients:
-                if key is client: continue
-                s += str(value[1]) + ", "
-            if s == "": s = "No one available"
-            else: s = f"{s[:-2]}\n"
-            client.sendall(s.encode("utf-8"))
+            # Manda a lista de clientes disponíveis
+            def send_client_list():
+                s = ""
+                for key, value in clients:
+                    if key is client: continue
+                    s += str(value[1]) + ", "
+                if s == "": s = "No one available"
+                else: s = f"{s[:-2]}\n"
+                client.sendall(s.encode("utf-8"))
 
-        seeing_client_list = False
-        decoded = ""
+            def ask_for_connection(client_number: int):
+                for key, value in clients:
+                    if key is client: continue
+                    if client_number == value[1]:
+                        key.sendall("Someone wants to connect to you. Do you accept?".encode("utf-8"))
+                        msg = key.recv(data_payload)
+                        decoded = msg.decode("utf-8") # Decodifica a mensagem recebida em utf-8
+                        decoded = msg.strip() # Tira espaços
+                        if decoded == "y":
+                            return True, value[0]
+                        else:
+                            return False, None
 
-        while True:
-            try:
+            seeing_client_list = False
+            decoded = ""
+
+            while True:
                 msg = client.recv(data_payload)
                 decoded = msg.decode("utf-8") # Decodifica a mensagem recebida em utf-8
                 decoded = msg.strip() # Tira espaços
 
                 if seeing_client_list:
-                    if decoded == "c":
+                    if decoded == "c": # Cliente cancelou
                         seeing_client_list = False
-                        pass # Cancela
-
-            except Exception as e:
+                        continue
+                    else:
+                        accepted, addr = ask_for_connection(int(decoded))
+                        if accepted:
+                            client.sendall(f"Request accepted. Address: {addr}".encode("utf-8"))
+                            break # Desconecta o cliente
+                        else:
+                            client.sendall("Request refused".encode("utf-8"))
+                else:
+                    if decoded == "l":
+                        seeing_client_list = True
+                        send_client_list()
+                    else: # Cliente cancelou
+                        continue 
+        except Exception as e:
+            try:
                 client.sendall("Error ocurred. You are disconnected".encode("utf-8")) # Informa ao cliente que houve erro
-                remove_client(client) # Remove o cliente do dicionário
-                print(f"Error at {clients[client][1]}: {str(e)}") # Printa erro no terminal do servidor
-                break # Quebra o laço e termina a thread
+            except:
+                pass
+            remove_client(client) # Remove o cliente do dicionário
+            print(f"Error at {clients[client][1]}: {str(e)}") # Printa erro no terminal do servidor
 
     def remove_client(client: socket.socket):
         clients.pop(client)
