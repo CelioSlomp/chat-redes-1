@@ -9,8 +9,8 @@ def server():
     clients = dict() # Dicionário de clientes
 
     def get_client_by_num(client_number: int):
-        for key, value in clients:
-            if value[1] == client_number:
+        for key in clients.keys():
+            if clients[key][1] == client_number:
                 return key
         return None
 
@@ -37,9 +37,9 @@ def server():
             # Manda a lista de clientes disponíveis
             def send_client_list():
                 s = ""
-                for key, value in clients:
+                for key in clients.keys():
                     if key is client: continue
-                    s += str(value[1]) + ", "
+                    s += str(clients[key][1]) + ", "
                 if s == "": s = "No one available"
                 else: s = f"{s[:-2]}\n"
                 client.sendall(s.encode("utf-8"))
@@ -64,15 +64,16 @@ def server():
                     else:
                         accepted, addr = ask_for_connection(int(decoded))
                         if accepted:
-                            client.sendall(f"{decoded}:{addr}".encode("utf-8"))
+                            client.sendall(f"Request accepted. Address of {decoded}: {addr}".encode("utf-8"))
                             break
                         else:
-                            client.sendall("".encode("utf-8"))
+                            client.sendall("Request refused".encode("utf-8"))
                 else:
                     if decoded == "l":
                         seeing_client_list = True
                         send_client_list()
                     elif decoded == "e": # Cliente fechou conexão
+                        client.sendall("You are disconnected".encode("utf-8"))
                         print(f"Client {clients[client][1]} exited") # Printa que o cliente se desconectou
                         break
             remove_client(client) # Remove o cliente do dicionário 
