@@ -1,5 +1,6 @@
 import socket
 import threading
+import traceback
 
 SERVER_HOSTNAME = socket.gethostname() # Nome da máquina do servidor
 SERVER_PORT = 22222 # Porta do servidor
@@ -43,7 +44,7 @@ def server():
                     if key is client: continue
                     s += str(clients[key][1]) + ", "
                 if s == "": s = "No one available"
-                else: s = f"{s[:-2]}\n"
+                else: s = f"{s[:-2]}"
                 client.sendall(s.encode("utf-8"))
 
             def ask_for_connection(client_requested_num: int):
@@ -87,6 +88,7 @@ def server():
             try: client.sendall("Error ocurred. You are disconnected".encode("utf-8"))
             except: pass
             print(f"Error at client {clients[client][1]}: {str(e)}") # Printa erro no terminal do servidor
+            traceback.print_stack()
             remove_client(client) # Remove o cliente do dicionário
 
     def remove_client(client: socket.socket):

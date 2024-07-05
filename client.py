@@ -63,7 +63,7 @@ def client():
                 step == 2
             
             server.sendall(option.encode("utf-8")) # Envia a opção para o servidor
-            time.sleep(1)
+            
             decoded = receive_message_from_server(server)
             if decoded == "You are disconnected": # Cliente enviou 'e' e foi desconectado
                 print("SERVER >> " + decoded)
@@ -122,7 +122,6 @@ def client():
 
     def recebe_mensagem():
         while True:
-            print("a")
             data = other_client.recv(DATA_PAYLOAD)
             if data:
                 print(data.decode('utf-8'))
