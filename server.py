@@ -20,7 +20,7 @@ def server():
     def bind_standard_socket():
         host = socket.gethostbyname(SERVER_HOSTNAME)
         s = socket.socket(socket.AF_INET,  socket.SOCK_STREAM)
-        s.bind(('192.168.2.4', SERVER_PORT))
+        s.bind((host, SERVER_PORT))
         return s, host
     
     def receive_message(pr_client: socket.socket):
@@ -96,7 +96,7 @@ def server():
         client.close()
 
     s, host = bind_standard_socket() # Inicia o socket
-    print(f"Server started at {host}:{SERVER_PORT}")
+    print(f"Server {SERVER_HOSTNAME} started at {host}:{SERVER_PORT}")
     s.listen(5) # Espera pela conexão de qualquer cliente
     num_client = 0
     while True:

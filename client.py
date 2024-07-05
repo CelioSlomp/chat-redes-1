@@ -1,6 +1,5 @@
 import socket
 import threading
-import time
 
 SERVER_HOSTNAME = "DESKTOP-5I8TS92" # Nome da máquina do servidor
 SERVER_PORT = 22222 # Porta do servidor
@@ -17,7 +16,7 @@ def client():
     def connect_to_server():
         host = socket.gethostbyname(SERVER_HOSTNAME)
         s = socket.socket(socket.AF_INET,  socket.SOCK_STREAM)
-        s.connect(('192.168.2.4', SERVER_PORT))
+        s.connect((host, SERVER_PORT))
         return s, host
     
     def receive_message_from_server(pr_server: socket.socket):
