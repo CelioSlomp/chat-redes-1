@@ -58,7 +58,6 @@ def server():
 
             # Etapa 0 -> Cliente está visualizando os comandos
             # Etapa 1 -> Cliente recebeu a lista
-            # Etapa 2 -> Cliente está em "standby" esperando conexão
             step = 0
             decoded = ""
 
@@ -73,8 +72,10 @@ def server():
                         else:
                             continue
                     elif decoded == "w":
-                        step = 2
-                        continue
+                        client.sendall("Now you are visible to others".encode("utf-8"))
+                        clients[client][2] = True # Cliente está visível para outros
+                        print(f"Client {clients[client][1]} is visible to others")
+                        return # Sai da thread sem remover o cliente do dicionário
                     elif decoded == "e": # Cliente fechou conexão
                         client.sendall("You are disconnected".encode("utf-8"))
                         print(f"Client {clients[client][1]} exited") # Printa que o cliente se desconectou
@@ -97,10 +98,6 @@ def server():
                             client.sendall("Request refused".encode("utf-8"))
                             step = 0
                             continue
-                elif step == 2:
-                    client.sendall("Now you are visible to others".encode("utf-8"))
-                    clients[client][2] = True
-                    return # Sai da thread sem remover o cliente do dicionário
         except Exception as e:
             # Tenta informar ao cliente que houve erro
             try: client.sendall("Error ocurred. You are disconnected".encode("utf-8"))
@@ -109,6 +106,7 @@ def server():
             remove_client(client) # Remove o cliente do dicionário
 
     def remove_client(client: socket.socket):
+        print(f"Client {clients[client][1]} disconnected")
         clients.pop(client)
         client.close()
 

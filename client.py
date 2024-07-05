@@ -9,7 +9,7 @@ SERVER_COMMAND_LIST = \
     "l - See the client list\n" + \
     "w - Wait for client connection\n" + \
     "e - Exit. Closes connection\n" + \
-    "Choose one of the options above\n"
+    "Choose one of the options above"
 
 def client():
 
@@ -38,13 +38,14 @@ def client():
         pass # TODO
 
     server, host = connect_to_server() # Inicia a conexão com o servidor
-    print(f"Server connected at {host}:{SERVER_PORT}\n")
+    print(f"Server connected at {host}:{SERVER_PORT}")
     print("SERVER >> " + receive_message_from_server(server)) # Deve imprimir 'You are connected to the server'
 
     other_client_addr = ""
     other_client_port = 0
     other_client_number = 0
     step = 0
+    decoded = ""
 
     # Etapa 0 -> vendo lista de comandos
     # Etapa 1 -> vendo lista de clientes
@@ -58,31 +59,30 @@ def client():
             if (option != "l") and (option != "e") and (option != "w"):
                 print("Invalid option")
                 continue # Pede a opção novamente ao usuário
-            elif option == "w":
-                step = 2
-                continue
             
             server.sendall(option.encode("utf-8")) # Envia a opção para o servidor
             
             decoded = receive_message_from_server(server)
+            print("SERVER >> " + decoded)
+
             if decoded == "You are disconnected": # Cliente enviou 'e' e foi desconectado
-                print("SERVER >> " + decoded)
                 print("Finishing program")
                 return
-            elif decoded == "No one available": # Não tem ninguém pra se conectar
-                print("SERVER >> " + decoded)
+            elif decoded == "No one available": # Cliente enviou 'l' e não tem ninguém pra se conectar
                 print("Wait for someone to connect to the server")
                 continue
-            else:
+            elif decoded == "Now you are visible to others": # Cliente enviou 'w'
+                print("Waiting for connetion from other client...")
+                step = 2
+                continue
+            else: # Cliente enviou 'l' e recebeu a lista dos clientes disponíveis
                 step == 1
                 continue
         elif step == 1: # Está na etapa de receber a lista de clientes
-            # decoded = receive_message_from_server(server) # Lista dos clientes
             client_list = decoded.strip(",")
 
             while True:
-                print("SERVER >> " + decoded)
-                print("Choose one of the items above or 'c' to cancel and go back\n")
+                print("Choose one of the items above or 'c' to cancel and go back")
                 option = input().strip() # Pede o número do cliente ao usuário
                 if (option not in client_list) and (option != "c"):
                     print("Invalid option")
@@ -107,9 +107,6 @@ def client():
                         step = 3
                         break
         elif step == 2: # Está na etapa de esperar por conexão de algum outro cliente
-            decoded = receive_message_from_server(server)
-            print("SERVER >> " + decoded)
-            print("Waiting for connetion from other client...")
             decoded = receive_message_from_server(server)
 
             while True:
