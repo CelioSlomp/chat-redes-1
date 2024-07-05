@@ -64,10 +64,10 @@ def server():
                     else:
                         accepted, addr = ask_for_connection(int(decoded))
                         if accepted:
-                            client.sendall(f"Request accepted. Address of {decoded}: {addr}".encode("utf-8"))
+                            client.sendall(f"{decoded}:{addr}".encode("utf-8"))
                             break
                         else:
-                            client.sendall("Request refused".encode("utf-8"))
+                            client.sendall("".encode("utf-8"))
                 else:
                     if decoded == "l":
                         seeing_client_list = True
