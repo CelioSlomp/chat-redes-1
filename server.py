@@ -2,6 +2,8 @@ import socket
 import threading
 import time
 
+# NÃO USAR SOCKET COMO CHAVE NO DICIONÁRIO!!! USAR O NÚMERO DO CLIENTE
+
 def server():
     clients = dict() # Dicionário de clientes
     data_payload = 2048 # O payload máximo de dados para ser recebido em 'uma tacada só'
