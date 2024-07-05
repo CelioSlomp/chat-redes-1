@@ -44,7 +44,8 @@ def server():
                     i += 1
                     print("ITERAÇÃO", i)
                     if key is client: continue
-                    s += str(clients[key][1]) + ", "
+                    if clients[key][2]: # Verifica se o cliente está esperando conexão
+                        s += str(clients[key][1]) + ", "
                 if s == "": s = "No one available"
                 else: s = f"{s[:-2]}"
                 client.sendall(s.encode("utf-8"))
@@ -55,8 +56,8 @@ def server():
                 client_requested = get_client_by_num(client_requested_num)
                 client_requested.sendall(f"Client {clients[client][0]} wants to connect to you. Do you accept?".encode("utf-8"))
                 decoded = receive_message(client_requested)
-                if decoded == "y": return True, clients[client_requested][1] # Retorna endereço
-                else: return False, None
+                if decoded == "y": return client_requested, True, clients[client_requested][1] # Retorna endereço
+                else: return client_requested, False, None
 
             # Etapa 0 -> Cliente está visualizando os comandos
             # Etapa 1 -> Cliente recebeu a lista
@@ -71,9 +72,16 @@ def server():
                     if decoded == "l":
                         if send_client_list():
                             step = 1
+                            continue
+                        else:
+                            continue
+                    elif decoded == "w":
+                        step = 2
+                        continue
                     elif decoded == "e": # Cliente fechou conexão
                         client.sendall("You are disconnected".encode("utf-8"))
                         print(f"Client {clients[client][1]} exited") # Printa que o cliente se desconectou
+                        remove_client(client) # Remove o cliente do dicionário 
                         break
                 elif step == 1:
                     if decoded == "c": # Cliente cancelou
@@ -82,14 +90,20 @@ def server():
                         continue
                     else:
                         client.sendall("Asking for connection...".encode("utf-8"))
-                        accepted, addr = ask_for_connection(int(decoded))
+                        client_requested, accepted, addr = ask_for_connection(int(decoded))
                         if accepted:
                             client.sendall(f"{addr}:{STANDARD_CLIENT_PORT}".encode("utf-8"))
+                            remove_client(client) # Remove o cliente atual do dicionário 
+                            remove_client(client_requested) # Remove o cliente requisitado
                             break
                         else:
                             client.sendall("Request refused".encode("utf-8"))
-            remove_client(client) # Remove o cliente do dicionário 
-            return
+                            step = 0
+                            continue
+                elif step == 2:
+                    client.sendall("Now you are visible to others".encode("utf-8"))
+                    clients[client][2] = True
+                    return # Sai da thread sem remover o cliente do dicionário
         except Exception as e:
             # Tenta informar ao cliente que houve erro
             try: client.sendall("Error ocurred. You are disconnected".encode("utf-8"))
@@ -108,7 +122,7 @@ def server():
     while True:
         client, addr = s.accept()
         num_client += 1
-        clients.update({client: [addr, num_client]})
+        clients.update({client: [addr, num_client, False]})
         print(f'Client {num_client} connected. Address: {addr}')
 
         # Inicia uma nova thread para lidar com as mensagens do cliente

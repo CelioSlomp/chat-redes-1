@@ -107,6 +107,8 @@ def client():
                         step = 3
                         break
         elif step == 2: # Está na etapa de esperar por conexão de algum outro cliente
+            decoded = receive_message_from_server(server)
+            print("SERVER >> " + decoded)
             print("Waiting for connetion from other client...")
             decoded = receive_message_from_server(server)
 
