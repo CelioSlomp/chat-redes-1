@@ -5,6 +5,8 @@ SERVER_HOSTNAME = socket.gethostname() # Nome da máquina do servidor
 SERVER_PORT = 22222 # Porta do servidor
 DATA_PAYLOAD = 1024 # O payload máximo de dados para ser recebido em 'uma tacada só'
 
+STANDARD_CLIENT_PORT = 22223
+
 def server():
     clients = dict() # Dicionário de clientes
 
@@ -59,12 +61,14 @@ def server():
 
                 if seeing_client_list:
                     if decoded == "c": # Cliente cancelou
+                        client.sendall("Returning to command list".encode("utf-8"))
                         seeing_client_list = False
                         continue
                     else:
+                        client.sendall("Asking for connection...".encode("utf-8"))
                         accepted, addr = ask_for_connection(int(decoded))
                         if accepted:
-                            client.sendall(f"Request accepted. Address of {decoded}: {addr}".encode("utf-8"))
+                            client.sendall(f"{addr}:{STANDARD_CLIENT_PORT}".encode("utf-8"))
                             break
                         else:
                             client.sendall("Request refused".encode("utf-8"))

@@ -5,10 +5,11 @@ SERVER_HOSTNAME = "prog27" # Nome da máquina do servidor
 SERVER_PORT = 22222 # Porta do servidor
 DATA_PAYLOAD = 1024 # O payload máximo de dados para ser recebido em 'uma tacada só'
 
-SERVER_COMMANDS_LIST = \
-    "Server commands:\n" + \
-    "l - see the client list\n" + \
-    "e - exit. closes connection\n"
+SERVER_COMMAND_LIST = \
+    "l - See the client list\n" + \
+    "w - Wait for client connection\n" + \
+    "e - Exit. Closes connection\n" + \
+    "Choose one of the options above\n"
 
 def client():
 
@@ -27,31 +28,96 @@ def client():
                 break
         return decoded
     
-    def connect_to_client(host):
+    def connect_to_client(ip: str, port: int): 
+        # TESTAR
         s = socket.socket(socket.AF_INET,  socket.SOCK_STREAM)
-        s.connect((host, SERVER_PORT))
-        return s, host
-
-
-    s, host = connect_to_server() # Inicia o socket
-    print(f"Server connected at {host}:{SERVER_PORT}\n")
-    print(receive_message_from_server(s)) # 'You are connected to the server'
-
-    print(SERVER_COMMANDS_LIST) # Imprime os comandos e pede ao user a opcao
-    option = input().strip()
-    s.sendall(option.encode("utf-8"))
-
-    retorno_server = receive_message_from_server(s) # retorno do server sobre a opcao
-    if retorno_server == "":
-        print("Cliente recusou o contato.")
-    else:                                           # caso o cliente aceite a conexao
-        retorno_server = retorno_server.split(":")
-        nome_client = retorno_server[0]
-        conexao_client, ip_client = connect_to_client(retorno_server[1])
-
-        print(f"SERVER >> Conectado com o usuario {nome_client}. IP: {ip_client}")
+        s.connect((ip, port))
+        return s
     
+    def receive_message_from_client(pr_client: socket.socket):
+        pass # TODO
 
+    server, host = connect_to_server() # Inicia a conexão com o servidor
+    print(f"Server connected at {host}:{SERVER_PORT}\n")
+    print("SERVER >> " + receive_message_from_server(server)) # Deve imprimir 'You are connected to the server'
+
+    other_client_addr = ""
+    other_client_port = 0
+    other_client_number = 0
+    step = 0
+
+    # Etapa 0 -> vendo lista de comandos
+    # Etapa 1 -> vendo lista de clientes
+    # Etapa 2 -> esperando conexão de alguém
+    # Etapa 3 -> vai se conectar a outro cliente
+    while True:
+        if step == 0: # Está na etapa de ver os comandos do servidor
+            print(SERVER_COMMAND_LIST) # Imprime os comandos do servidor
+            option = input().strip() # Pede a opção ao usuário
+
+            if (option != "l") and (option != "e") and (option != "w"):
+                print("Invalid option")
+                continue # Pede a opção novamente ao usuário
+            elif option == "w":
+                step == 2
+            
+            server.sendall(option.encode("utf-8")) # Envia a opção para o servidor
+            
+            decoded = receive_message_from_server(server)
+            if decoded == "You are disconnected": # Cliente enviou 'e' e foi desconectado
+                print("SERVER >> " + decoded)
+                print("Finishing program")
+                return
+            else: # Cliente enviou 'l' e recebeu a lista dos clientes
+                step = 1
+                continue
+        elif step == 1: # Está na etapa de receber a lista de clientes
+            decoded = receive_message_from_server(server) # Lista dos clientes
+            client_list = decoded.strip(",")
+
+            while True:
+                print("SERVER >> " + decoded)
+                print("Choose one of the items above or 'c' to cancel and go back\n")
+                option = input().strip() # Pede o número do cliente ao usuário
+                if (option not in client_list) and (option != "c"):
+                    print("Invalid option")
+                    continue # Pede a opção novamente ao usuário
+                else:
+                    server.sendall(option.encode("utf-8")) # Envia a opção para o servidor
+                    print("SERVER >> " + receive_message_from_server(server)) # 'SERVER >> Asking for connection...'
+                    other_client_number = int(option)
+
+                    decoded = receive_message_from_server(server) # Aceitação ou recusa
+                    if decoded == "Request refused": # Recusado
+                        print("SERVER >> " + decoded)
+                        step = 0
+                        break # Sai deste laço e volta a printar a lista de comandos
+                    else: # Aceito. Vem o endereço e a porta do outro cliente
+                        decoded = decoded.split(":")
+                        other_client_addr = decoded[0]
+                        other_client_port = decoded[1]
+                        step = 3
+                        break
+        elif step == 2: # Está na etapa de esperar por conexão de algum outro cliente
+            print("Waiting for connetion from other client...")
+            decoded = receive_message_from_server(server)
+
+            while True:
+                print("SERVER >> " + decoded)
+                print("Choose 'y' to accept or 'n' to refuse")
+                option = input().strip() # Pede a opção ao usuário
+                if (option != "y") and (option != "n"):
+                    print("Invalid option")
+                    continue
+                elif (option == "y"):
+                    pass # TODO
+                elif (option == "n"):
+                    pass # TODO
+        elif step == 3: # Está na etapa de se conectar a outro cliente
+            break
+
+    other_client = connect_to_client(other_client_addr, other_client_port)
+    print(f"Connected to client {other_client_number}. Address: {other_client_addr}, Port: {other_client_port}")
 
 def main():
     client()
