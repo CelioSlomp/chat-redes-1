@@ -5,14 +5,11 @@ def recebendo():
     try:
         i = 0
         while True:
-            
             s = "cliente 3 >> recebida mensagem de teste"
             print(f"\r{s}", i)
 
             if i == 10:
                 return
-
-            time.sleep(3)
             i += 1
     except:
         return

@@ -1,7 +1,7 @@
 import socket
 import threading
 
-SERVER_HOSTNAME = "prog27" # Nome da máquina do servidor
+SERVER_HOSTNAME = "DESKTOP-5I8TS92" # Nome da máquina do servidor
 SERVER_PORT = 22222 # Porta do servidor
 DATA_PAYLOAD = 1024 # O payload máximo de dados para ser recebido em 'uma tacada só'
 
@@ -118,6 +118,22 @@ def client():
 
     other_client = connect_to_client(other_client_addr, other_client_port)
     print(f"Connected to client {other_client_number}. Address: {other_client_addr}, Port: {other_client_port}")
+
+    def recebe_mensagem():
+        while True:
+            data = other_client.recv(DATA_PAYLOAD)
+            if data:
+                print(data.decode('utf-8'))
+
+    def envia_mensagem():
+        while True:
+            mensagem = input(">> ")
+            codificada = mensagem.encode('utf-8')
+            other_client.sendall(codificada)
+
+    threading.Thread(target=recebe_mensagem)
+    threading.Thread(target=envia_mensagem)
+
 
 def main():
     client()
