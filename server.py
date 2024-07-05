@@ -34,7 +34,7 @@ def server():
     def handle_client(client: socket.socket):
         try:
             # Confirma que há conexão com o cliente
-            client.sendall("You are connected to the server".encode("utf-8"))
+            client.sendall(f"Client {clients[client][1]}: you are connected to the server".encode("utf-8"))
 
             # Manda a lista de clientes disponíveis
             def send_client_list():
@@ -51,10 +51,10 @@ def server():
 
             def ask_for_connection(client_requested_num: int):
                 client_requested = get_client_by_num(client_requested_num)
-                client_requested.sendall(f"Client {clients[client][0]} wants to connect to you. Do you accept?".encode("utf-8"))
+                client_requested.sendall(f"Client {clients[client][1]} wants to connect to you. Do you accept?".encode("utf-8"))
                 decoded = receive_message(client_requested)
-                if decoded == "y": return client_requested, True, clients[client_requested][1] # Retorna endereço
-                else: return client_requested, False, None
+                if decoded == "y": return client_requested, True, clients[client_requested][0] # Retorna endereço e a porta
+                elif decoded == "n": return client_requested, False, None
 
             # Etapa 0 -> Cliente está visualizando os comandos
             # Etapa 1 -> Cliente recebeu a lista
@@ -90,7 +90,7 @@ def server():
                         client.sendall("Asking for connection...".encode("utf-8"))
                         client_requested, accepted, addr = ask_for_connection(int(decoded))
                         if accepted:
-                            client.sendall(f"{addr}:{STANDARD_CLIENT_PORT}".encode("utf-8"))
+                            client.sendall(f"{addr[0]}:{STANDARD_CLIENT_PORT}".encode("utf-8"))
                             remove_client(client) # Remove o cliente atual do dicionário 
                             remove_client(client_requested) # Remove o cliente requisitado
                             break

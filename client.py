@@ -1,8 +1,10 @@
 import socket
 import threading
 
-SERVER_HOSTNAME = "DESKTOP-5I8TS92" # Nome da máquina do servidor
+SERVER_HOSTNAME = "prog27" # Nome da máquina do servidor
+OWN_HOSTNAME = socket.gethostname()
 SERVER_PORT = 22222 # Porta do servidor
+CLIENT_PORT = 22223
 DATA_PAYLOAD = 1024 # O payload máximo de dados para ser recebido em 'uma tacada só'
 
 SERVER_COMMAND_LIST = \
@@ -29,13 +31,18 @@ def client():
         return decoded
     
     def connect_to_client(ip: str, port: int): 
-        # TESTAR
         s = socket.socket(socket.AF_INET,  socket.SOCK_STREAM)
         s.connect((ip, port))
         return s
     
     def receive_message_from_client(pr_client: socket.socket):
         pass # TODO
+
+    def open_socket_for_client():
+        host = socket.gethostbyname(OWN_HOSTNAME)
+        s = socket.socket(socket.AF_INET,  socket.SOCK_STREAM)
+        s.bind((host, CLIENT_PORT))
+        return s
 
     server, host = connect_to_server() # Inicia a conexão com o servidor
     print(f"Server connected at {host}:{SERVER_PORT}")
@@ -50,7 +57,8 @@ def client():
     # Etapa 0 -> vendo lista de comandos
     # Etapa 1 -> vendo lista de clientes
     # Etapa 2 -> esperando conexão de alguém
-    # Etapa 3 -> vai se conectar a outro cliente
+    # Etapa 3 -> vai se conectar a outro cliente -> é o REQUESTER
+    # Etapa 4 -> vai se conectar a outro cliente -> é o REQUESTED
     while True:
         if step == 0: # Está na etapa de ver os comandos do servidor
             print(SERVER_COMMAND_LIST) # Imprime os comandos do servidor
@@ -76,10 +84,10 @@ def client():
                 step = 2
                 continue
             else: # Cliente enviou 'l' e recebeu a lista dos clientes disponíveis
-                step == 1
+                step = 1
                 continue
         elif step == 1: # Está na etapa de receber a lista de clientes
-            client_list = decoded.strip(",")
+            client_list = decoded.split(", ")
 
             while True:
                 print("Choose one of the items above or 'c' to cancel and go back")
@@ -88,16 +96,19 @@ def client():
                     print("Invalid option")
                     continue # Pede a opção novamente ao usuário
                 elif option == "c":
-                    step == 0
-                    continue
+                    server.sendall(option.encode("utf-8")) # Envia a opção para o servidor
+                    decoded = receive_message_from_server(server)
+                    print("SERVER >> " + decoded)
+                    step = 0
+                    break
                 else:
                     server.sendall(option.encode("utf-8")) # Envia a opção para o servidor
                     print("SERVER >> " + receive_message_from_server(server)) # 'SERVER >> Asking for connection...'
                     other_client_number = int(option)
 
                     decoded = receive_message_from_server(server) # Aceitação ou recusa
+                    print("SERVER >> " + decoded)
                     if decoded == "Request refused": # Recusado
-                        print("SERVER >> " + decoded)
                         step = 0
                         break # Sai deste laço e volta a printar a lista de comandos
                     else: # Aceito. Vem o endereço e a porta do outro cliente
@@ -117,30 +128,42 @@ def client():
                     print("Invalid option")
                     continue
                 elif (option == "y"):
-                    pass # TODO
+                    server.sendall(option.encode("utf-8")) # Envia 'y' para o servidor
+                    step = 4
+                    break
                 elif (option == "n"):
-                    pass # TODO
-        elif step == 3: # Está na etapa de se conectar a outro cliente
+                    server.sendall(option.encode("utf-8")) # Envia 'n' para o servidor
+                    break
+        elif step == 3: # Está na etapa de se conectar a outro cliente. É O REQUESTER
+            other_client = connect_to_client(other_client_addr, int(other_client_port))
+            print(f"Connected to client {other_client_number}. Address/Port: ({other_client_addr}:{other_client_port})")
+            break
+        elif step == 4: # Está na etapa de se conectar a outro cliente. É O REQUESTED
+            # REQUESTED DEVE ABRIR O SOCKET E FUNCIONAR COMO UM "SERVIDOR"
+            s = open_socket_for_client()
+            s.listen(1)
+            other_client, other_client_addr = s.accept()
+            print(f"Connected to client. Address/Port: {other_client_addr}")
             break
 
-    other_client = connect_to_client(other_client_addr, other_client_port)
-    print(f"Connected to client {other_client_number}. Address: {other_client_addr}, Port: {other_client_port}")
+    input()
 
-    def recebe_mensagem():
+    def recebendo():
         while True:
             data = other_client.recv(DATA_PAYLOAD)
             if data:
                 print(data.decode('utf-8'))
 
-    def envia_mensagem():
+    def enviando():
         while True:
             print("b")
             mensagem = input(">> ")
             codificada = mensagem.encode('utf-8')
             other_client.sendall(codificada)
 
-    threading.Thread(target=recebe_mensagem)
-    threading.Thread(target=envia_mensagem)
+    # Inicia as threads
+    threading.Thread(target=recebendo)
+    threading.Thread(target=enviando)
 
 
 def main():
