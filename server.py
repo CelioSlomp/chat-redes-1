@@ -2,7 +2,6 @@ import socket
 import threading
 import time
 
-# NÃO USAR SOCKET COMO CHAVE NO DICIONÁRIO!!! USAR O NÚMERO DO CLIENTE
 
 def server():
     clients = dict() # Dicionário de clientes
@@ -77,12 +76,12 @@ def server():
                 client.sendall("Error ocurred. You are disconnected".encode("utf-8")) # Informa ao cliente que houve erro
             except:
                 pass
+            print(f"Error at client {clients[client][1]}: {str(e)}") # Printa erro no terminal do servidor
             remove_client(client) # Remove o cliente do dicionário
-            print(f"Error at {clients[client][1]}: {str(e)}") # Printa erro no terminal do servidor
 
     def remove_client(client: socket.socket):
         clients.pop(client)
-        client.close() # Testar
+        client.close()
 
     s, host, port = set_standard_socket() # Inicia o socket
     print(f"Server started at {host}:{port}")

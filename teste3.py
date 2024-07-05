@@ -1,6 +1,6 @@
 import socket
 
-host = "DESKTOP-BHM3090"
+host = "prog27"
 ip = socket.gethostbyname(host)
 print(ip)
 porta = 22222
