@@ -39,10 +39,7 @@ def server():
             # Manda a lista de clientes disponíveis
             def send_client_list():
                 s = ""
-                i = 0
                 for key in clients.keys():
-                    i += 1
-                    print("ITERAÇÃO", i)
                     if key is client: continue
                     if clients[key][2]: # Verifica se o cliente está esperando conexão
                         s += str(clients[key][1]) + ", "
