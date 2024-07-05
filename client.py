@@ -80,7 +80,6 @@ def client():
                 print("Wait for someone to connect to the server")
                 continue
             elif decoded == "Now you are visible to others": # Cliente enviou 'w'
-                print("Waiting for connetion from other client...")
                 step = 2
                 continue
             else: # Cliente enviou 'l' e recebeu a lista dos clientes disponíveis
@@ -118,10 +117,14 @@ def client():
                         step = 3
                         break
         elif step == 2: # Está na etapa de esperar por conexão de algum outro cliente
+            print("Waiting for connetion from other client...")
             decoded = receive_message_from_server(server)
 
             while True:
                 print("SERVER >> " + decoded)
+                decoded = decoded[7:]
+                decoded = decoded[:decoded.index(" ")]
+                other_client_number = int(decoded)
                 print("Choose 'y' to accept or 'n' to refuse")
                 option = input().strip() # Pede a opção ao usuário
                 if (option != "y") and (option != "n"):
@@ -143,7 +146,7 @@ def client():
             s = open_socket_for_client()
             s.listen(1)
             other_client, other_client_addr = s.accept()
-            print(f"Connected to client. Address/Port: {other_client_addr}")
+            print(f"Connected to client {other_client_number}. Address/Port: {other_client_addr}")
             break
 
     input()
