@@ -1,5 +1,6 @@
 import socket
 import threading
+import time
 
 SERVER_HOSTNAME = "DESKTOP-5I8TS92" # Nome da máquina do servidor
 SERVER_PORT = 22222 # Porta do servidor
@@ -16,7 +17,7 @@ def client():
     def connect_to_server():
         host = socket.gethostbyname(SERVER_HOSTNAME)
         s = socket.socket(socket.AF_INET,  socket.SOCK_STREAM)
-        s.connect((host, SERVER_PORT))
+        s.connect(('192.168.2.4', SERVER_PORT))
         return s, host
     
     def receive_message_from_server(pr_server: socket.socket):
@@ -62,7 +63,7 @@ def client():
                 step == 2
             
             server.sendall(option.encode("utf-8")) # Envia a opção para o servidor
-            
+            time.sleep(1)
             decoded = receive_message_from_server(server)
             if decoded == "You are disconnected": # Cliente enviou 'e' e foi desconectado
                 print("SERVER >> " + decoded)
@@ -121,12 +122,14 @@ def client():
 
     def recebe_mensagem():
         while True:
+            print("a")
             data = other_client.recv(DATA_PAYLOAD)
             if data:
                 print(data.decode('utf-8'))
 
     def envia_mensagem():
         while True:
+            print("b")
             mensagem = input(">> ")
             codificada = mensagem.encode('utf-8')
             other_client.sendall(codificada)

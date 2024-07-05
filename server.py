@@ -19,7 +19,7 @@ def server():
     def bind_standard_socket():
         host = socket.gethostbyname(SERVER_HOSTNAME)
         s = socket.socket(socket.AF_INET,  socket.SOCK_STREAM)
-        s.bind((host, SERVER_PORT))
+        s.bind(('192.168.2.4', SERVER_PORT))
         return s, host
     
     def receive_message(pr_client: socket.socket):
