@@ -1,6 +1,5 @@
 import socket
 import threading
-import traceback
 
 SERVER_HOSTNAME = socket.gethostname() # Nome da máquina do servidor
 SERVER_PORT = 22222 # Porta do servidor
@@ -40,12 +39,17 @@ def server():
             # Manda a lista de clientes disponíveis
             def send_client_list():
                 s = ""
+                i = 0
                 for key in clients.keys():
+                    i += 1
+                    print("ITERAÇÃO", i)
                     if key is client: continue
                     s += str(clients[key][1]) + ", "
                 if s == "": s = "No one available"
                 else: s = f"{s[:-2]}"
                 client.sendall(s.encode("utf-8"))
+                if s == "No one available": return False
+                else: return True
 
             def ask_for_connection(client_requested_num: int):
                 client_requested = get_client_by_num(client_requested_num)
@@ -54,16 +58,27 @@ def server():
                 if decoded == "y": return True, clients[client_requested][1] # Retorna endereço
                 else: return False, None
 
-            seeing_client_list = False
+            # Etapa 0 -> Cliente está visualizando os comandos
+            # Etapa 1 -> Cliente recebeu a lista
+            # Etapa 2 -> Cliente está em "standby" esperando conexão
+            step = 0
             decoded = ""
 
             while True:
                 decoded = receive_message(client)
 
-                if seeing_client_list:
+                if step == 0:
+                    if decoded == "l":
+                        if send_client_list():
+                            step = 1
+                    elif decoded == "e": # Cliente fechou conexão
+                        client.sendall("You are disconnected".encode("utf-8"))
+                        print(f"Client {clients[client][1]} exited") # Printa que o cliente se desconectou
+                        break
+                elif step == 1:
                     if decoded == "c": # Cliente cancelou
                         client.sendall("Returning to command list".encode("utf-8"))
-                        seeing_client_list = False
+                        step = 0
                         continue
                     else:
                         client.sendall("Asking for connection...".encode("utf-8"))
@@ -73,14 +88,6 @@ def server():
                             break
                         else:
                             client.sendall("Request refused".encode("utf-8"))
-                else:
-                    if decoded == "l":
-                        seeing_client_list = True
-                        send_client_list()
-                    elif decoded == "e": # Cliente fechou conexão
-                        client.sendall("You are disconnected".encode("utf-8"))
-                        print(f"Client {clients[client][1]} exited") # Printa que o cliente se desconectou
-                        break
             remove_client(client) # Remove o cliente do dicionário 
             return
         except Exception as e:
@@ -88,7 +95,6 @@ def server():
             try: client.sendall("Error ocurred. You are disconnected".encode("utf-8"))
             except: pass
             print(f"Error at client {clients[client][1]}: {str(e)}") # Printa erro no terminal do servidor
-            traceback.print_stack()
             remove_client(client) # Remove o cliente do dicionário
 
     def remove_client(client: socket.socket):

@@ -59,7 +59,8 @@ def client():
                 print("Invalid option")
                 continue # Pede a opção novamente ao usuário
             elif option == "w":
-                step == 2
+                step = 2
+                continue
             
             server.sendall(option.encode("utf-8")) # Envia a opção para o servidor
             
@@ -68,11 +69,15 @@ def client():
                 print("SERVER >> " + decoded)
                 print("Finishing program")
                 return
-            else: # Cliente enviou 'l' e recebeu a lista dos clientes
-                step = 1
+            elif decoded == "No one available": # Não tem ninguém pra se conectar
+                print("SERVER >> " + decoded)
+                print("Wait for someone to connect to the server")
+                continue
+            else:
+                step == 1
                 continue
         elif step == 1: # Está na etapa de receber a lista de clientes
-            decoded = receive_message_from_server(server) # Lista dos clientes
+            # decoded = receive_message_from_server(server) # Lista dos clientes
             client_list = decoded.strip(",")
 
             while True:
@@ -82,6 +87,9 @@ def client():
                 if (option not in client_list) and (option != "c"):
                     print("Invalid option")
                     continue # Pede a opção novamente ao usuário
+                elif option == "c":
+                    step == 0
+                    continue
                 else:
                     server.sendall(option.encode("utf-8")) # Envia a opção para o servidor
                     print("SERVER >> " + receive_message_from_server(server)) # 'SERVER >> Asking for connection...'
