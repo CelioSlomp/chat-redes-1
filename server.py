@@ -12,6 +12,15 @@ def server():
         port = 22222
         s.bind((host, port))
         return s, host, port
+    
+    def receive_message(pr_client: socket.socket):
+        decoded = ""
+        while True:
+            msg = pr_client.recv(data_payload)
+            decoded += msg.decode("utf-8")
+            if len(msg) < data_payload:
+                break
+        return decoded
 
     def handle_client(client: socket.socket):
         try:
@@ -32,9 +41,7 @@ def server():
                     if key is client: continue
                     if client_number == value[1]:
                         key.sendall("Someone wants to connect to you. Do you accept?".encode("utf-8"))
-                        msg = key.recv(data_payload)
-                        decoded = msg.decode("utf-8") # Decodifica a mensagem recebida em utf-8
-                        decoded = msg.strip() # Tira espaços
+                        decoded = receive_message(key).strip()
                         if decoded == "y":
                             return True, value[0]
                         else:
@@ -44,9 +51,7 @@ def server():
             decoded = ""
 
             while True:
-                msg = client.recv(data_payload)
-                decoded = msg.decode("utf-8") # Decodifica a mensagem recebida em utf-8
-                decoded = msg.strip() # Tira espaços
+                decoded = receive_message(client).strip()
 
                 if seeing_client_list:
                     if decoded == "c": # Cliente cancelou

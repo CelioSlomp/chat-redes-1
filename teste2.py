@@ -9,10 +9,10 @@ def recebendo():
             s = "cliente 3 >> recebida mensagem de teste"
             print(f"\r{s}", i)
 
-            if i == 20:
+            if i == 10:
                 return
 
-            time.sleep(1)
+            time.sleep(3)
             i += 1
     except:
         return
