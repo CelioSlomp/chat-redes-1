@@ -36,7 +36,13 @@ def client():
         return s
     
     def receive_message_from_client(pr_client: socket.socket):
-        pass # TODO
+        decoded = ""
+        while True:
+            msg = pr_client.recv(DATA_PAYLOAD)
+            decoded += msg.decode("utf-8")
+            if len(msg) < DATA_PAYLOAD:
+                break
+        return decoded
 
     def open_socket_for_client():
         host = socket.gethostbyname(OWN_HOSTNAME)
@@ -149,24 +155,26 @@ def client():
             print(f"Connected to client {other_client_number}. Address/Port: {other_client_addr}")
             break
 
-    input()
-
     def recebendo():
         while True:
-            data = other_client.recv(DATA_PAYLOAD)
-            if data:
-                print(data.decode('utf-8'))
+            decoded = receive_message_from_client(other_client)
+            print(f"Client {other_client_number} >> " + decoded)
 
     def enviando():
         while True:
-            print("b")
-            mensagem = input(">> ")
-            codificada = mensagem.encode('utf-8')
-            other_client.sendall(codificada)
+            msg = input()
+            encoded = msg.encode('utf-8')
+            other_client.sendall(encoded)
+            print("SENT:", msg)
 
     # Inicia as threads
-    threading.Thread(target=recebendo)
-    threading.Thread(target=enviando)
+    thread_recebendo = threading.Thread(target=recebendo)
+    thread_enviando = threading.Thread(target=enviando)
+
+    thread_recebendo.start()
+    thread_enviando.start()
+
+    print("Ready to listen and send messages!")
 
 
 def main():
